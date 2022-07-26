@@ -1,4 +1,4 @@
-package com.notas.generated;
+package com.CrediAsist.generated;
 
 import java.util.Arrays;
 import java.util.List;

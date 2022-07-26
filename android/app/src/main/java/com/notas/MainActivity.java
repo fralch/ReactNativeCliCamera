@@ -1,4 +1,4 @@
-package com.notas;
+package com.CrediAsist;
 
 import android.os.Bundle;
 
