@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { useCamera } from 'react-native-camera-hooks';
 
 export default function Camera({ navigation, route }) {
- const [dni, fijarDni] = useState(null);
+  const [dni, fijarDni] = useState(null);
   const [{ cameraRef }, { takePicture }] = useCamera(null);
+  const [loading, setLoading] = useState(false);
 
   const tomarFoto = async () => {
     try {
@@ -20,7 +22,26 @@ export default function Camera({ navigation, route }) {
       // const data = await takePicture();
       // const filePath = data.uri;
       const foto = await takePicture({ base64: true });
-      console.log(foto);
+      // console.log(foto.base64);
+      // setLoading(true);
+      const response = await fetch('http://192.168.1.4/cre/cli/subir_imagen', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          dni: dni,
+          file: foto.base64
+        })
+      });
+      const rpt = await response.json();
+      // console.log(rpt); 
+      if (rpt == 1) {
+        // setLoading(false);
+        alert('Foto Subida');
+      }
+      
       Alert.alert('Foto tomada', 'Foto tomada con éxito');
     } catch (error) {
       console.log(error);
@@ -30,26 +51,31 @@ export default function Camera({ navigation, route }) {
 
 
   return (
-    <View style={styles.body}>
-      <RNCamera
-        ref={cameraRef}
-        type={RNCamera.Constants.Type.back}
-        style={styles.preview}
-      >
-        <View style={styles.inputContendor}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ingresar DNI"
-            keyboardType="numeric"
-            onChangeText={fijarDni}
-          />
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.text} onPress={() => tomarFoto()}> ENVIAR </Text>
-          </TouchableOpacity>
+    loading ?
+      <View style={[styles.container, styles.horizontal]}>
+        <ActivityIndicator />
+      </View>
+      :
+      <View style={styles.body}>
+        <RNCamera
+          ref={cameraRef}
+          type={RNCamera.Constants.Type.back}
+          style={styles.preview}
+        >
+          <View style={styles.inputContendor}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingresar DNI"
+              keyboardType="numeric"
+              onChangeText={fijarDni}
+            />
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.text} onPress={() => tomarFoto()}> ENVIAR </Text>
+            </TouchableOpacity>
 
-        </View>
-      </RNCamera>
-    </View>
+          </View>
+        </RNCamera>
+      </View>
   );
 }
 
@@ -69,7 +95,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  
+
   input: {
     height: 40,
     width: 200,
